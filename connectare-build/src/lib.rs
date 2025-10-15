@@ -7,19 +7,19 @@ use std::{
     rc::Rc,
 };
 
-use gen::AxumConnectServiceGenerator;
+use gen::ConnectareServiceGenerator;
 
 mod gen;
 
 #[derive(Clone, Debug)]
-pub struct AxumConnectGenSettings {
+pub struct ConnectareGenSettings {
     pub includes: Vec<PathBuf>,
     pub inputs: Vec<PathBuf>,
     pub protoc_args: Vec<String>,
     pub protoc_version: Option<String>,
 }
 
-impl Default for AxumConnectGenSettings {
+impl Default for ConnectareGenSettings {
     fn default() -> Self {
         Self {
             includes: Default::default(),
@@ -30,7 +30,7 @@ impl Default for AxumConnectGenSettings {
     }
 }
 
-impl AxumConnectGenSettings {
+impl ConnectareGenSettings {
     pub fn from_directory_recursive<P>(path: P) -> anyhow::Result<Self>
     where
         P: Into<PathBuf>,
@@ -57,7 +57,7 @@ impl AxumConnectGenSettings {
     }
 }
 
-pub fn connectare_codegen(settings: AxumConnectGenSettings) -> anyhow::Result<()> {
+pub fn connectare_codegen(settings: ConnectareGenSettings) -> anyhow::Result<()> {
     // Fetch protoc
     if let Some(version) = &settings.protoc_version {
         let out_dir = env::var("OUT_DIR").unwrap();
@@ -78,7 +78,7 @@ pub fn connectare_codegen(settings: AxumConnectGenSettings) -> anyhow::Result<()
     conf.compile_well_known_types();
     conf.file_descriptor_set_path(&descriptor_path);
     conf.extern_path(".google.protobuf", "::connectare::pbjson_types");
-    conf.service_generator(Box::new(AxumConnectServiceGenerator::new()));
+    conf.service_generator(Box::new(ConnectareServiceGenerator::new()));
 
     // Arg configuration
     for arg in settings.protoc_args {

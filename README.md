@@ -43,10 +43,10 @@ service HelloWorldService {
 ### 2. Generate Code (build.rs)
 
 ```rust
-use connectare_build::{connectare_codegen, AxumConnectGenSettings};
+use connectare_build::{connectare_codegen, ConnectareGenSettings};
 
 fn main() {
-    let settings = AxumConnectGenSettings::from_directory_recursive("proto")
+    let settings = ConnectareGenSettings::from_directory_recursive("proto")
         .expect("failed to glob proto files");
     connectare_codegen(settings).unwrap();
 }

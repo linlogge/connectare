@@ -4,9 +4,9 @@ use quote::{format_ident, quote};
 use syn::parse_str;
 
 #[derive(Default)]
-pub struct AxumConnectServiceGenerator {}
+pub struct ConnectareServiceGenerator {}
 
-impl AxumConnectServiceGenerator {
+impl ConnectareServiceGenerator {
     pub fn new() -> Self {
         Default::default()
     }
@@ -186,7 +186,7 @@ impl AxumConnectServiceGenerator {
     }
 }
 
-impl ServiceGenerator for AxumConnectServiceGenerator {
+impl ServiceGenerator for ConnectareServiceGenerator {
     fn generate(&mut self, service: Service, buf: &mut String) {
         self.generate_service(service, buf);
     }

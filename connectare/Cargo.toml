@@ -1,7 +1,7 @@
 [package]
 name = "connectare"
 version = "0.5.3"
-authors = ["Alec Thilenius <alec@thilenius.com>"]
+authors = ["Alec Thilenius <alec@thilenius.com>", "Noël Sigmunczyk <noel.sigmunczyk@pm.me>"]
 edition = "2021"
 categories = [
   "network-programming",
