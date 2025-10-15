@@ -19,41 +19,93 @@ Connectare is a Rust library that provides Connect-Web RPC functionality for Axu
 
 ## Quick Start
 
-### Server
+### 1. Define your Protocol (hello.proto)
+
+```protobuf
+syntax = "proto3";
+
+package hello;
+
+message HelloRequest { 
+    optional string name = 1; 
+}
+
+message HelloResponse { 
+    string message = 1; 
+}
+
+service HelloWorldService {
+    rpc SayHello(HelloRequest) returns (HelloResponse) {}
+    rpc SayHelloStream(HelloRequest) returns (stream HelloResponse) {}
+}
+```
+
+### 2. Generate Code (build.rs)
 
 ```rust
+use connectare_build::{connectare_codegen, AxumConnectGenSettings};
+
+fn main() {
+    let settings = AxumConnectGenSettings::from_directory_recursive("proto")
+        .expect("failed to glob proto files");
+    connectare_codegen(settings).unwrap();
+}
+```
+
+### 3. Server Implementation
+
+```rust
+use axum::Router;
 use connectare::prelude::*;
-use axum::{Router, extract::Host};
+use axum_extra::extract::Host;
+use proto::hello::*;
+
+mod proto {
+    pub mod hello {
+        include!(concat!(env!("OUT_DIR"), "/hello.rs"));
+    }
+}
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .rpc(HelloWorldService::say_hello(say_hello_handler));
+        // Unary RPC handler
+        .rpc(HelloWorldService::say_hello(say_hello_unary))
+        // GET version for caching
+        .rpc(HelloWorldService::say_hello_unary_get(say_hello_unary));
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3030").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 }
 
-async fn say_hello_handler(Host(host): Host, request: HelloRequest) -> Result<HelloResponse, Error> {
+async fn say_hello_unary(Host(host): Host, request: HelloRequest) -> Result<HelloResponse, Error> {
     Ok(HelloResponse {
-        message: format!("Hello {}! Host: {}", request.name, host),
+        message: format!(
+            "Hello {}! You're addressing the hostname: {}.",
+            request.name.unwrap_or_else(|| "unnamed".to_string()),
+            host
+        ),
     })
 }
 ```
 
-### Client
+### 4. Client Implementation
 
 ```rust
-use connectare::client::*;
+use connectare::prelude::*;
+use proto::hello::*;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = ConnectClient::new("http://localhost:3030");
-    let response = client.call_unary(HelloWorldService::say_hello(), HelloRequest {
-        name: "World".to_string(),
-    }).await?;
+    let client = RpcClient::new(RpcClientConfig::new("http://127.0.0.1:3030")?);
+    let client = HelloWorldServiceClient::new(client);
+
+    let request = HelloRequest {
+        name: Some("World".to_string()),
+    };
+    let response = client.say_hello(request).await?;
+    println!("Response: {:?}", response);
     
-    println!("Response: {}", response.message);
     Ok(())
 }
 ```
