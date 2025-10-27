@@ -78,7 +78,7 @@ impl ConnectareServiceGenerator {
         let method_name_unary_get = format_ident!("{}_unary_get", method.name);
         let input_type: syn::Type = parse_str(&method.input_type).unwrap();
         let output_type: syn::Type = parse_str(&method.output_type).unwrap();
-        let path = format!("{}/{}", path_root, method.proto_name);
+        let path = format!("/{}/{}", path_root, method.proto_name);
 
         if method.server_streaming {
             quote! {
